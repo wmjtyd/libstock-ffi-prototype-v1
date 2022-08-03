@@ -1,12 +1,12 @@
-use core::slice;
-use std::ptr::slice_from_raw_parts_mut;
+use std::io::Cursor;
 
-use safer_ffi::String as FFIString;
 use ::safer_ffi::prelude::*;
-use wmjtyd_libstock::data::{fields::PriceDataField as RPriceDataField, serializer::FieldSerializer};
-use crate::{types::{interop::Interopable, ErrorCode}, errors::LibstockResult};
+use wmjtyd_libstock::data::fields::{FieldError, PriceDataField as RPriceDataField};
+use wmjtyd_libstock::data::serializer::FieldSerializer;
 
 use super::errors::LibstockErrors;
+use crate::errors::LibstockResult;
+use crate::types::ErrorCode;
 
 /// The structure of a price data.
 // #[derive(Clone, Debug, PartialEq, Eq)]
@@ -14,22 +14,26 @@ use super::errors::LibstockErrors;
 #[repr(C)]
 pub struct PriceDataField {
     /// 價格 (5 bytes)
-    pub price: FFIString,
+    pub price: char_p::Box,
 
     /// 基本量 (5 bytes)
-    pub quantity_base: FFIString,
+    pub quantity_base: char_p::Box,
 }
 
-impl TryFrom<PriceDataField> for RPriceDataField {
+impl TryFrom<&PriceDataField> for RPriceDataField {
     type Error = LibstockErrors;
 
-    fn try_from(value: PriceDataField) -> Result<Self, Self::Error> {
-        let price: &str = value.price.as_ref();
-        let quantity_base: &str = value.quantity_base.as_ref();
+    fn try_from(value: &PriceDataField) -> Result<Self, Self::Error> {
+        let price = value.price.to_str();
+        let quantity_base = value.quantity_base.to_str();
 
         Ok(Self {
-            price: price.try_into().map_err(|_| LibstockErrors::DecimalStringInvalid)?,
-            quantity_base: quantity_base.try_into().map_err(|_| LibstockErrors::DecimalStringInvalid)?,
+            price: price
+                .try_into()
+                .map_err(|_| LibstockErrors::DecimalStringInvalid)?,
+            quantity_base: quantity_base
+                .try_into()
+                .map_err(|_| LibstockErrors::DecimalStringInvalid)?,
         })
     }
 }
@@ -38,34 +42,49 @@ impl TryFrom<RPriceDataField> for PriceDataField {
     type Error = LibstockErrors;
 
     fn try_from(value: RPriceDataField) -> Result<Self, Self::Error> {
+        let price = value
+            .price
+            .to_string()
+            .try_into()
+            .expect("failed to convert a string to C string.");
+        let quantity_base = value
+            .price
+            .to_string()
+            .try_into()
+            .expect("failed to convert a string to C string.");
+
         Ok(Self {
-            price: value.price.to_string().into(),
-            quantity_base: value.quantity_base.to_string().into(),
+            price,
+            quantity_base,
         })
     }
 }
 
-impl Interopable for PriceDataField {
-    type Target = RPriceDataField;
-}
+fn inner_serialize_field<'a, S, F: 'a>(
+    input: &'a F,
+    mut buf: c_slice::Mut<u8>,
+    written_len: &mut usize,
+) -> LibstockResult<()>
+where
+    S: FieldSerializer<10, Err = FieldError> + TryFrom<&'a F, Error = LibstockErrors>,
+{
+    let rust_type = S::try_from(input)?;
+    let mut cursor = Cursor::new(&mut buf[..]);
 
-unsafe fn inner_serialize_price_data_field(input: PriceDataField, buf_pointer: *mut u8, buf_len: usize) -> LibstockResult<()> {
-    let rust_type = RPriceDataField::try_from(input)?;
-    // 內部分配一個 buffer 追蹤長度。
-    let mut buf = Vec::with_capacity(buf_len);
+    rust_type.serialize_to_writer(&mut cursor)??;
 
-    // let mut buf = slice::from_raw_parts_mut(buf_pointer, buf_len);
-
-    rust_type.serialize_to_writer(&mut buf)??;
-
-    let mut user_buf = slice_from_raw_parts_mut(data, len);
-    user_buf.copy_from_slice(&user_buf);
+    *written_len = cursor.position() as usize;
 
     Ok(())
 }
 
 #[ffi_export]
-pub unsafe fn serialize_price_data_field(input: PriceDataField, buf_pointer: *mut u8, buf_len: usize) -> ErrorCode {
-    inner_serialize_price_data_field(input, buf_pointer, buf_len)
-        .map(|_| 0).unwrap_or_else(|e| e as u32)
+pub fn serialize_price_data_field(
+    input: &PriceDataField,
+    buf: c_slice::Mut<u8>,
+    written_len: &mut usize,
+) -> ErrorCode {
+    inner_serialize_field::<RPriceDataField, _>(input, buf, written_len)
+        .map(|_| 0)
+        .unwrap_or_else(|e| e as u32)
 }

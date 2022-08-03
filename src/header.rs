@@ -10,6 +10,6 @@ pub fn generate_header() -> anyhow::Result<()> {
         .context("Failed to create builder.")?
         .generate()
         .context("Failed to generate header.")?;
-    
+
     Ok(())
 }
