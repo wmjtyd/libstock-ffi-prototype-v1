@@ -1,0 +1,33 @@
+[package]
+name = "wmjtyd-libstock-ffi"
+description = "The official foreign function interface (FFI) of libstock"
+version = "0.1.0-dev"
+edition = "2021"
+readme = "README.md"
+license-file = "LICENSE"
+
+[workspace]
+members = [".", "codegen"]
+default-members = ["."]
+
+[lib]
+crate-type = [
+    "staticlib",  # Ensure it gets compiled as a (static) C library
+  # "cdylib",     # If you want a shared/dynamic C library (advanced)
+    "lib",        # For downstream Rust dependents: `examples/`, `tests/` etc.
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1.0.60", optional = true }
+log = "0.4.17"
+safer-ffi = { version = "0.0.10", features = ["log", "derives"] }
+wmjtyd-libstock = { git = "https://github.com/wmjtyd/libstock", branch = "develop", version = "0.4.0-dev" }
+
+[features]
+headers = ["safer-ffi/headers", "anyhow"]
+
+[[bin]]
+name = "gen-header"
+required-features = ["headers"]
