@@ -62,7 +62,7 @@ impl TryFrom<RPriceDataField> for PriceDataField {
 
 fn inner_serialize_field<'a, S, F: 'a>(
     input: &'a F,
-    mut buf: c_slice::Mut<u8>,
+    buf: &mut c_slice::Mut<u8>,
     written_len: &mut usize,
 ) -> LibstockResult<()>
 where
@@ -79,9 +79,9 @@ where
 }
 
 #[ffi_export]
-pub fn serialize_price_data_field(
+pub fn serialize_price_data_field<'a>(
     input: &PriceDataField,
-    buf: c_slice::Mut<u8>,
+    buf: &'a mut c_slice::Mut<'a, u8>,
     written_len: &mut usize,
 ) -> ErrorCode {
     inner_serialize_field::<RPriceDataField, _>(input, buf, written_len)
