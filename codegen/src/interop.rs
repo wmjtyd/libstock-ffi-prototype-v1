@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use proc_macro_error::{abort, abort_call_site};
 use quote::quote;
+use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 use syn::spanned::Spanned;
 use syn::{Attribute, Fields, Ident};
 
@@ -24,10 +25,8 @@ pub fn interop_derive_macro(input: syn::ItemStruct) -> TokenStream {
                 let ident = field.ident.unwrap();
                 let attrs = field.attrs;
 
-                let convert_type = ConvertType::from((
-                    extract_boolean_attribute(&attrs, "into"),
-                    extract_boolean_attribute(&attrs, "convert_box"),
-                ));
+                let convert_type = get_convert_type_bit_flag(&attrs);
+                let convert_type = ConvertType::from(convert_type);
 
                 ConvertableField::new(ident, convert_type)
             })
@@ -105,11 +104,17 @@ pub fn interop_derive_macro(input: syn::ItemStruct) -> TokenStream {
 }
 
 /// 轉換類型。
+#[derive(Copy, Clone, Debug, PartialEq, Eq, AsRefStr, EnumIter)]
+#[strum(serialize_all = "snake_case")]
 enum ConvertType {
-    None,
+    None = 0,
     Into,
+    TryInto,
     ConvertBox,
+    Default,
 }
+
+type ConvertTypeBitFlag = u64;
 
 /// 可以產生對應轉換語句的 Field 封裝。
 struct ConvertableField {
@@ -131,26 +136,45 @@ impl ConvertableField {
         match self.convert_type {
             ConvertType::None => quote! { #source_struct.#ident },
             ConvertType::Into => quote! { #source_struct.#ident.into() },
+            ConvertType::TryInto => quote! { #source_struct.#ident.try_into()? },
             ConvertType::ConvertBox => quote! {{
                 use crate::converter::ConvertBox;
                 let ConvertBox(f) = TryFrom::try_from(ConvertBox(&#source_struct.#ident))?;
                 f
             }},
+            ConvertType::Default => quote! { Default::default() }
         }
     }
 }
 
-type HasIntoAttr = bool;
-type HasConvertBoxAttr = bool;
-impl From<(HasIntoAttr, HasConvertBoxAttr)> for ConvertType {
-    fn from((has_into_attr, has_convert_box_attr): (HasIntoAttr, HasConvertBoxAttr)) -> Self {
-        match (has_into_attr, has_convert_box_attr) {
-            (true, true) => abort_call_site!("both `into` and `convert_box` are specified"),
-            (true, false) => ConvertType::Into,
-            (false, true) => ConvertType::ConvertBox,
-            (false, false) => ConvertType::None,
+impl From<ConvertTypeBitFlag> for ConvertType {
+    fn from(flag: ConvertTypeBitFlag) -> Self {
+        for convert_type in ConvertType::iter() {
+            let mask = 1 << (convert_type as u64);
+
+            // 如果 mask 之後不等於 0 => convert_type match!
+            if flag & mask != 0 {
+                return convert_type;
+            }
         }
+
+        ConvertType::None
     }
+}
+
+/// 根據傳入的 Attribute 判斷屬於哪種 ConvertType。
+fn get_convert_type_bit_flag(attrs: &[Attribute]) -> ConvertTypeBitFlag {
+    let attr = attrs.iter().find_map(|attr| {
+        for convert_type in ConvertType::iter() {
+            if attr.path.is_ident(convert_type.as_ref()) {
+                return Some(1 << (convert_type as u64));
+            }
+        }
+        None
+    });
+
+    // None。
+    attr.unwrap_or(0)
 }
 
 /// 抓出指定 attributes 裡面的基礎 ident 值型 attribute。
@@ -183,15 +207,43 @@ fn extract_simple_ident_attribute(attributes: &[Attribute], ident: &str) -> Iden
     }
 }
 
-/// 抓出指定 attributes 裡面的 boolean 型 attribute。
-///
-/// boolean 型 attribute 基本上是長這樣的：
-///
-/// ```ignore
-/// #[into]
-/// ```
-///
-/// 如果找到名為 `into` 的 Attribute 則回傳 true；反之為 false。
-fn extract_boolean_attribute(attributes: &[Attribute], ident: &str) -> bool {
-    attributes.iter().any(|attr| attr.path.is_ident(ident))
+// 暫時沒用到。
+//
+// /// 抓出指定 attributes 裡面的 boolean 型 attribute。
+// ///
+// /// boolean 型 attribute 基本上是長這樣的：
+// ///
+// /// ```ignore
+// /// #[into]
+// /// ```
+// ///
+// /// 如果找到名為 `into` 的 Attribute 則回傳 true；反之為 false。
+// fn extract_boolean_attribute(attributes: &[Attribute], ident: &str) -> bool {
+//     attributes.iter().any(|attr| attr.path.is_ident(ident))
+// }
+
+#[cfg(test)]
+mod tests {
+    use super::ConvertType;
+
+    #[test]
+    fn test_convert_type_asref() {
+        assert_eq!(ConvertType::None.as_ref(), "none");
+        assert_eq!(ConvertType::Into.as_ref(), "into");
+        assert_eq!(ConvertType::TryInto.as_ref(), "try_into");
+        assert_eq!(ConvertType::ConvertBox.as_ref(), "convert_box");
+        assert_eq!(ConvertType::Default.as_ref(), "default");
+    }
+
+    #[test]
+    fn test_convert_type_from_mask() {
+        #![allow(clippy::identity_op)]
+
+        assert_eq!(ConvertType::from(0), ConvertType::None);
+        assert_eq!(ConvertType::from(1 << 0), ConvertType::None);
+        assert_eq!(ConvertType::from(1 << 1), ConvertType::Into);
+        assert_eq!(ConvertType::from(1 << 2), ConvertType::TryInto);
+        assert_eq!(ConvertType::from(1 << 3), ConvertType::ConvertBox);
+        assert_eq!(ConvertType::from(1 << 4), ConvertType::Default);
+    }
 }

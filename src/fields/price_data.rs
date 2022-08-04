@@ -1,6 +1,12 @@
+//! The module with a field to specify the price data,
+//! which includes the price and quantity base.
+//!
+//! For more information, see [`PriceDataField`].
+
 use ::safer_ffi::prelude::*;
 use codegen::{deserializer_function, serializer_function, Interop, alloc_function};
-use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
+
+pub use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
 
 /// The structure of a price data.
 #[derive(Clone, Debug, Interop)]

@@ -64,7 +64,7 @@ pub fn alloc_function(item: TokenStream) -> TokenStream {
 ///   pub foreign_type: char_p::Box,
 /// }
 /// ```
-#[proc_macro_derive(Interop, attributes(rs_type, into, convert_box))]
+#[proc_macro_derive(Interop, attributes(rs_type, into, try_into, convert_box, default))]
 #[proc_macro_error]
 pub fn interop_derive_macro(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::ItemStruct);
