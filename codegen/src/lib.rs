@@ -1,5 +1,6 @@
 mod interop;
 mod serializer;
+mod alloc;
 
 use proc_macro::TokenStream;
 use proc_macro_error::proc_macro_error;
@@ -28,6 +29,19 @@ pub fn serializer_function(item: TokenStream) -> TokenStream {
 #[proc_macro_error]
 pub fn deserializer_function(item: TokenStream) -> TokenStream {
     serializer::inner_deserializer_function(item.into()).into()
+}
+
+/// 產生對應類型的 `libstock` 的 C FFI new 和 free 函數。
+///
+/// 使用範例如下：
+///
+/// ```ignore
+/// alloc_function!(PriceDataField);
+/// ```
+#[proc_macro]
+#[proc_macro_error]
+pub fn alloc_function(item: TokenStream) -> TokenStream {
+    alloc::inner_alloc_function(item.into()).into()
 }
 
 /// 建立 FFI type 與 Rust type 之間的 Interop。

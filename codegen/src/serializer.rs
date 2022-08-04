@@ -43,7 +43,7 @@ pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
     let snake_case_ffi_type = ffi_type.to_string().to_case(Case::Snake);
 
     let func_ident = format_ident!("deserialize_{snake_case_ffi_type}");
-    let doc_str = format!("Deerialize `{ffi_type}` from the specified buffer.");
+    let doc_str = format!("Deserialize `{ffi_type}` from the specified buffer.");
 
     quote! {
         #[ffi_export]

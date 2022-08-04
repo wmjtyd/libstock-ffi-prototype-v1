@@ -1,5 +1,5 @@
 use ::safer_ffi::prelude::*;
-use codegen::{deserializer_function, serializer_function, Interop};
+use codegen::{deserializer_function, serializer_function, Interop, alloc_function};
 use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
 
 /// The structure of a price data.
@@ -17,5 +17,6 @@ pub struct PriceDataField {
     pub quantity_base: char_p::Box,
 }
 
+alloc_function!(PriceDataField);
 serializer_function!(PriceDataField -> RPriceDataField);
 deserializer_function!(RPriceDataField -> PriceDataField);

@@ -37,7 +37,8 @@ where
     let data = RST::deserialize_from_reader(&mut input)??;
 
     let result = FFI::try_from(data)?;
-    *output = result;
+
+    unsafe { std::ptr::write(output, result) };
 
     Ok(())
 }
