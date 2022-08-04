@@ -142,7 +142,7 @@ impl ConvertableField {
                 let ConvertBox(f) = TryFrom::try_from(ConvertBox(&#source_struct.#ident))?;
                 f
             }},
-            ConvertType::Default => quote! { Default::default() }
+            ConvertType::Default => quote! { Default::default() },
         }
     }
 }

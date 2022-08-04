@@ -2,7 +2,12 @@ use std::io::Cursor;
 
 use safer_ffi::prelude::c_slice;
 use wmjtyd_libstock::data::fields::FieldError;
-use wmjtyd_libstock::data::serializer::{FieldDeserializer, FieldSerializer, StructSerializer, StructDeserializer};
+use wmjtyd_libstock::data::serializer::{
+    FieldDeserializer,
+    FieldSerializer,
+    StructDeserializer,
+    StructSerializer,
+};
 
 use crate::errors::{LibstockErrors, LibstockResult};
 

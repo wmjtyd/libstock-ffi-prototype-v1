@@ -4,8 +4,7 @@
 //! For more information, see [`PriceDataField`].
 
 use ::safer_ffi::prelude::*;
-use codegen::{deserializer_function, serializer_function, Interop, alloc_function};
-
+use codegen::{alloc_function, deserializer_function, serializer_function, Interop};
 pub use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
 
 /// The structure of a price data.

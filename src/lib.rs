@@ -1,6 +1,6 @@
+pub mod errors;
 pub mod fields;
 pub mod structure;
-pub mod errors;
 
 // Internal use.
 pub(crate) mod converter;

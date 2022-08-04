@@ -38,7 +38,7 @@
 //     pub bids: PriceDataField,
 
 //     /// 資料結尾
-//     /// 
+//     ///
 //     /// 不需要指定。僅為佔位符號。
 //     #[default]
 //     pub end: (),
