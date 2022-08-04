@@ -79,7 +79,7 @@ pub fn interop_derive_macro(input: syn::ItemStruct) -> TokenStream {
         }
 
         impl TryFrom<&#rust_type> for #ffi_type {
-            type Error = LibstockErrors;
+            type Error = crate::errors::LibstockErrors;
 
             fn try_from(#source_ident: &#rust_type) -> Result<Self, Self::Error> {
                 #body

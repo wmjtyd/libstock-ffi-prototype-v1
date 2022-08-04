@@ -15,7 +15,7 @@ pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
     let snake_case_ffi_type = ffi_type.to_string().to_case(Case::Snake);
 
     let func_ident = format_ident!("serialize_{snake_case_ffi_type}");
-    let doc_str = format!(r#""Serialize `{ffi_type}` to the specified buffer."#);
+    let doc_str = format!("Serialize `{ffi_type}` to the specified buffer.");
 
     quote! {
         #[ffi_export]
