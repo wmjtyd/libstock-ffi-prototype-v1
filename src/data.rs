@@ -9,7 +9,7 @@ use crate::errors::LibstockResult;
 use crate::types::ErrorCode;
 
 /// The structure of a price data.
-// #[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[derive_ReprC]
 #[repr(C)]
 pub struct PriceDataField {
