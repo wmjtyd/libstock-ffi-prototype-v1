@@ -203,8 +203,20 @@ dependencies = [
 name = "codegen"
 version = "0.1.0"
 dependencies = [
+ "combine",
+ "convert_case",
+ "proc-macro2",
  "quote",
- "syn",
+]
+
+[[package]]
+name = "combine"
+version = "4.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a604e93b79d1808327a6fca85a6f2d69de66461e7620f5a4cbf5fb4d1d7c948"
+dependencies = [
+ "bytes 1.2.1",
+ "memchr",
 ]
 
 [[package]]
@@ -212,6 +224,12 @@ name = "concat-string"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7439becb5fafc780b6f4de382b1a7a3e70234afe783854a4702ee8adbb838609"
+
+[[package]]
+name = "convert_case"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb4a24b1aaf0fd0ce8b45161144d6f42cd91677fd5940fd431183eb023b3a2b8"
 
 [[package]]
 name = "cookie"
@@ -2828,6 +2846,7 @@ name = "wmjtyd-libstock-ffi"
 version = "0.1.0-dev"
 dependencies = [
  "anyhow",
+ "codegen",
  "log",
  "safer-ffi",
  "wmjtyd-libstock",

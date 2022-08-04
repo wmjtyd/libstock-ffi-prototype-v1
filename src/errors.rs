@@ -3,13 +3,16 @@
 use ::safer_ffi::prelude::*;
 use wmjtyd_libstock::data::fields::FieldError;
 
-#[ffi_export]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[derive_ReprC]
 #[repr(u32)]
 /// The errors that this FFI will return.
 pub enum LibstockErrors {
+    /// This instruction succeed.
+    Succeed = 0,
+
     /// Failed to serialize the specified data.
-    SerializeFailed = 0,
+    SerializeFailed = 1,
 
     /// The passed decimal number string is invalid.
     DecimalStringInvalid,

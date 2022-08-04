@@ -20,6 +20,7 @@ crate-type = [
 
 [dependencies]
 anyhow = { version = "1.0.59", optional = true }
+codegen = { version = "0.1.0", path = "codegen" }
 log = "0.4.17"
 safer-ffi = { version = "0.1.0", git = "https://github.com/getditto/safer_ffi.git", features = ["log"], rev = "64b921bdcabe441b957742332773248af6677a89" }
 wmjtyd-libstock = { git = "https://github.com/wmjtyd/libstock", branch = "develop", version = "0.4.0-dev" }
