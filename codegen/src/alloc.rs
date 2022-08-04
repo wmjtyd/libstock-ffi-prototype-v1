@@ -1,6 +1,6 @@
-use convert_case::{Casing, Case};
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
-use quote::{quote, format_ident};
+use quote::{format_ident, quote};
 
 pub fn inner_alloc_function(ffi_type: TokenStream) -> TokenStream {
     let ffi_type_str = ffi_type.to_string();
@@ -13,7 +13,7 @@ pub fn inner_alloc_function(ffi_type: TokenStream) -> TokenStream {
     let free_ident = format_ident!("free_{snake_case_ffi_type}");
 
     let new_doc_str = format!("Allocate a new `{new_ident}`.");
-    
+
     let free_doc_str = format!("Deallocate a new `{free_ident}`.");
     let free_safety_doc_str = format!("`f` should be the pointer allocated by `{new_ident}`.");
 
@@ -21,9 +21,9 @@ pub fn inner_alloc_function(ffi_type: TokenStream) -> TokenStream {
         const #layout_ident: ::std::alloc::Layout = ::std::alloc::Layout::new::<#ffi_type>();
 
         #[doc = #new_doc_str]
-        /// 
+        ///
         /// # Safety
-        /// 
+        ///
         /// The allocated memory may not be initiated.
         #[ffi_export]
         pub unsafe fn #new_ident() -> *mut #ffi_type {
@@ -31,9 +31,9 @@ pub fn inner_alloc_function(ffi_type: TokenStream) -> TokenStream {
         }
 
         #[doc = #free_doc_str]
-        /// 
+        ///
         /// # Safety
-        /// 
+        ///
         #[doc = #free_safety_doc_str]
         #[ffi_export]
         pub unsafe fn #free_ident(f: *mut #ffi_type) {

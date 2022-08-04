@@ -1,21 +1,37 @@
 use combine::parser::char::{digit, letter, spaces, string};
-use combine::{choice, many1, sep_by1, EasyParser, Parser};
+use combine::{choice, many1, sep_by1, token, EasyParser, Parser};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro_error::abort;
 use quote::{format_ident, quote};
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum SerializeType {
+    Field,
+    Struct,
+}
 
 pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
     let item = item.to_string();
-    let parameters = parse_parameters(&item);
+    let Parameters { typ, left, right } = parse_parameters(&item);
 
     // We have asserted in parse_parameters.
-    let ffi_type = Ident::new(&parameters[0], Span::call_site());
-    let rust_type = Ident::new(&parameters[1], Span::call_site());
+    let ffi_type = Ident::new(&left, Span::call_site());
+    let rust_type = Ident::new(&right, Span::call_site());
 
     let snake_case_ffi_type = ffi_type.to_string().to_case(Case::Snake);
 
     let func_ident = format_ident!("serialize_{snake_case_ffi_type}");
     let doc_str = format!("Serialize `{ffi_type}` to the specified buffer.");
+
+    let inner_body = match typ {
+        SerializeType::Field => {
+            quote! { crate::serializer::inner_serialize_field::<#rust_type, _>(input, buf, written_len) }
+        }
+        SerializeType::Struct => {
+            quote! { crate::serializer::inner_serialize_struct::<#rust_type, _, _>(input, buf, written_len) }
+        }
+    };
 
     quote! {
         #[ffi_export]
@@ -26,7 +42,7 @@ pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
             written_len: &mut usize,
         ) -> crate::errors::LibstockErrors {
             crate::utils::result_to_status_code(
-                crate::serializer::inner_serialize_field::<#rust_type, _>(input, buf, written_len)
+                #inner_body
             )
         }
     }
@@ -34,48 +50,87 @@ pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
 
 pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
     let item = item.to_string();
-    let parameters = parse_parameters(&item);
+    let Parameters { typ, left, right } = parse_parameters(&item);
 
     // We have asserted in parse_parameters.
-    let rust_type = Ident::new(&parameters[0], Span::call_site());
-    let ffi_type = Ident::new(&parameters[1], Span::call_site());
+    let rust_type = Ident::new(&left, Span::call_site());
+    let ffi_type = Ident::new(&right, Span::call_site());
 
     let snake_case_ffi_type = ffi_type.to_string().to_case(Case::Snake);
 
     let func_ident = format_ident!("deserialize_{snake_case_ffi_type}");
     let doc_str = format!("Deserialize `{ffi_type}` from the specified buffer.");
 
-    quote! {
-        #[ffi_export]
-        #[doc = #doc_str]
-        pub fn #func_ident<'a>(
-            input: &'a c_slice::Ref<'a, u8>,
-            output: &mut #ffi_type
-        ) -> crate::errors::LibstockErrors {
-            crate::utils::result_to_status_code(
-                crate::serializer::inner_deserialize_field::<#rust_type, _>(input, output)
-            )
+    match typ {
+        SerializeType::Field => {
+            quote! {
+                #[ffi_export]
+                #[doc = #doc_str]
+                pub fn #func_ident<'a>(
+                    input: &'a c_slice::Ref<'a, u8>,
+                    output: &mut #ffi_type
+                ) -> crate::errors::LibstockErrors {
+                    crate::utils::result_to_status_code(
+                        crate::serializer::inner_deserialize_field::<#rust_type, _>(input, output)
+                    )
+                }
+            }
+        }
+        SerializeType::Struct => {
+            quote! {
+                #[ffi_export]
+                #[doc = #doc_str]
+                pub fn #func_ident<'a>(
+                    input: &'a c_slice::Ref<'a, u8>,
+                    output: &mut #ffi_type
+                ) -> crate::errors::LibstockErrors {
+                    crate::utils::result_to_status_code(
+                        crate::serializer::inner_deserialize_struct::<#rust_type, _, _>(input, output)
+                    )
+                }
+            }
         }
     }
 }
 
-fn parse_parameters(input: &str) -> Vec<String> {
-    //               ~~~~ Ignore
-    // PriceDataField -> RPriceDataField
-    // ~~~~~[0]~~~~~~    ~~~~~[1]~~~~~~~
+struct Parameters {
+    pub typ: SerializeType,
+    pub left: String,
+    pub right: String,
+}
+
+fn parse_parameters(input: &str) -> Parameters {
+    //                      ~~~~ Ignore
+    // TYP, [PriceDataField -> RPriceDataField] -> ident_parser
+    //        ~~~~left~~~~    ~~~~right~~~~~~
+    let (typ, remaining) = choice((string("Field"), string("Struct")))
+        .skip(token(','))
+        .parse(input)
+        .unwrap();
+
     let mut ident_parser = sep_by1::<Vec<String>, _, _, _>(
         spaces().with(many1(choice((letter(), digit())))),
         spaces().skip(string("->")),
     );
 
+    let typ = match typ {
+        "Field" => SerializeType::Field,
+        "Struct" => SerializeType::Struct,
+        _ => abort!("Unexpected type: {}", typ),
+    };
+
     let (result, remaining) = ident_parser
-        .easy_parse(input)
+        .easy_parse(remaining)
         .expect("failed to parse the parameters");
 
     assert_eq!(result.len(), 2);
     assert_eq!(remaining, "");
 
-    result
+    Parameters {
+        typ,
+        left: result[0].clone(),
+        right: result[1].clone(),
+    }
 }
 
 #[cfg(test)]
@@ -84,17 +139,32 @@ mod tests {
 
     #[test]
     fn test_parse_parameter() {
-        const ALL_OF_THEM_ARE_THE_SAME: &[&str] = &[
-            "PriceDataField -> RPriceDataField",
-            "PriceDataField ->RPriceDataField",
-            "PriceDataField-> RPriceDataField",
-            "PriceDataField->RPriceDataField",
+        const ALL_OF_THEM_ARE_THE_SAME_FIELD: &[&str] = &[
+            "Field, PriceDataField -> RPriceDataField",
+            "Field, PriceDataField ->RPriceDataField",
+            "Field, PriceDataField-> RPriceDataField",
+            "Field, PriceDataField->RPriceDataField",
         ];
 
-        for testcase in ALL_OF_THEM_ARE_THE_SAME {
+        const ALL_OF_THEM_ARE_THE_SAME_STRUCT: &[&str] = &[
+            "Struct, BboStructure -> RBboStructure",
+            "Struct, BboStructure ->RBboStructure",
+            "Struct, BboStructure-> RBboStructure",
+            "Struct, BboStructure->RBboStructure",
+        ];
+
+        for testcase in ALL_OF_THEM_ARE_THE_SAME_FIELD {
             let result = parse_parameters(testcase);
-            assert_eq!(result[0], "PriceDataField");
-            assert_eq!(result[1], "RPriceDataField");
+            assert_eq!(result.typ, super::SerializeType::Field);
+            assert_eq!(result.left, "PriceDataField");
+            assert_eq!(result.right, "RPriceDataField");
+        }
+
+        for testcase in ALL_OF_THEM_ARE_THE_SAME_STRUCT {
+            let result = parse_parameters(testcase);
+            assert_eq!(result.typ, super::SerializeType::Struct);
+            assert_eq!(result.left, "BboStructure");
+            assert_eq!(result.right, "RBboStructure");
         }
     }
 
@@ -109,9 +179,13 @@ mod tests {
             };
         }
 
-        build_failcase!(fc_1, "PriceDataField ->");
-        build_failcase!(fc_2, "PriceDataField");
-        build_failcase!(fc_3, "PriceDataField-> RPriceDataField ->");
-        build_failcase!(fc_4, "PriceDataField->RPriceDataField->->->");
+        build_failcase!(fc_1, "Field, PriceDataField ->");
+        build_failcase!(fc_2, "Field, PriceDataField");
+        build_failcase!(fc_3, "Field, PriceDataField-> RPriceDataField ->");
+        build_failcase!(fc_4, "Field, PriceDataField->RPriceDataField->->->");
+        build_failcase!(fc_5, "WTF, PriceDataField-> RPriceDataField");
+        build_failcase!(fc_6, "ABC, PriceDataField->RPriceDataField");
+        build_failcase!(fc_7, "WTF, PriceDataField->RPriceDataField");
+        build_failcase!(fc_8, "ABC, PriceDataField->RPriceDataField");
     }
 }

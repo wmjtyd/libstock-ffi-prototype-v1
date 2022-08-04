@@ -1,0 +1,21 @@
+// use ::safer_ffi::prelude::*;
+// use codegen::{Interop, alloc_function};
+// use safer_ffi::derive_ReprC;
+
+// /// The structure of a price data.
+// #[derive(Clone, Debug, Interop)]
+// #[rs_type(RPriceDataField)]
+// #[derive_ReprC]
+// #[repr(C)]
+// pub struct PriceDataField {
+//     /// 價格 (5 bytes)
+//     #[convert_box]
+    
+//     pub price: char_p::Box,
+
+//     /// 基本量 (5 bytes)
+//     #[convert_box]
+//     pub quantity_base: char_p::Box,
+// }
+
+// alloc_function!(PriceDataField);

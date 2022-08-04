@@ -18,5 +18,5 @@ pub struct PriceDataField {
 }
 
 alloc_function!(PriceDataField);
-serializer_function!(PriceDataField -> RPriceDataField);
-deserializer_function!(RPriceDataField -> PriceDataField);
+serializer_function!(Field, PriceDataField -> RPriceDataField);
+deserializer_function!(Field, RPriceDataField -> PriceDataField);

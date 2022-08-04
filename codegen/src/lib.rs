@@ -1,6 +1,6 @@
+mod alloc;
 mod interop;
 mod serializer;
-mod alloc;
 
 use proc_macro::TokenStream;
 use proc_macro_error::proc_macro_error;
