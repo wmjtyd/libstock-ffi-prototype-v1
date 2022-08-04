@@ -36,7 +36,8 @@ where
 
     let data = RST::deserialize_from_reader(&mut input)??;
 
-    *output = FFI::try_from(data)?;
+    let result = FFI::try_from(data)?;
+    *output = result;
 
     Ok(())
 }

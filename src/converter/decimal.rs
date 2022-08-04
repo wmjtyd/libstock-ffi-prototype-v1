@@ -11,7 +11,6 @@ impl TryFrom<ConvertBox<&DecimalField<5>>> for ConvertBox<char_p::Box> {
     fn try_from(value: ConvertBox<&DecimalField<5>>) -> Result<Self, Self::Error> {
         Ok(Self(
             value
-                .0
                 .to_string()
                 .try_into()
                 .expect("failed to convert a string to C string."),
