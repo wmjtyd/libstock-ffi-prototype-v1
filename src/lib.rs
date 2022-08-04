@@ -4,9 +4,9 @@ pub mod header;
 pub mod errors;
 pub mod data;
 pub mod types;
-pub mod converter;
 
 // Internal use.
+pub(crate) mod converter;
 pub(crate) mod serializer;
 pub(crate) mod utils;
 

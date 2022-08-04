@@ -1,4 +1,6 @@
-pub struct ConvertBox<T>(T);
+pub mod decimal;
+
+pub struct ConvertBox<T>(pub T);
 
 impl<T> std::ops::Deref for ConvertBox<T> {
     type Target = T;
