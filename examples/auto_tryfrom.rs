@@ -24,26 +24,27 @@ impl<T> From<T> for ConvertBox<T> {
     }
 }
 
-impl TryFrom<ConvertBox<&DecimalField<5>>> for char_p_boxed {
+impl TryFrom<ConvertBox<&DecimalField<5>>> for ConvertBox<char_p_boxed> {
     type Error = LibstockErrors;
 
     fn try_from(value: ConvertBox<&DecimalField<5>>) -> Result<Self, Self::Error> {
-        Ok(value.0
+        Ok(Self(value.0
             .to_string()
             .try_into()
             .expect("failed to convert a string to C string.")
-        )
+        ))
     }
 }
 
-impl TryFrom<ConvertBox<&char_p_boxed>> for DecimalField<5> {
+impl TryFrom<ConvertBox<&char_p_boxed>> for ConvertBox<DecimalField<5>> {
     type Error = LibstockErrors;
 
     fn try_from(value: ConvertBox<&char_p_boxed>) -> Result<Self, Self::Error> {
-        value.0
+        Ok(Self(value.0
             .to_str()
             .try_into()
-            .map_err(|_| LibstockErrors::DecimalStringInvalid)
+            .map_err(|_| LibstockErrors::DecimalStringInvalid)?
+        ))
     }
 }
 
@@ -62,8 +63,14 @@ impl TryFrom<&PriceDataField> for RPDF {
 
     fn try_from(value: &PriceDataField) -> Result<Self, Self::Error> {
         Ok(Self {
-            price: ConvertBox(&value.price).try_into()?,
-            quantity_base: ConvertBox(&value.quantity_base).try_into()?,
+            price: {
+                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.price))?;
+                f
+            },
+            quantity_base: {
+                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
+                f
+            },
         })
     }
 }
@@ -73,12 +80,17 @@ impl TryFrom<&RPDF> for PriceDataField {
 
     fn try_from(value: &RPDF) -> Result<Self, Self::Error> {
         Ok(Self {
-            price: ConvertBox(&value.price).try_into()?,
-            quantity_base: ConvertBox(&value.quantity_base).try_into()?,
+            price: {
+                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.price))?;
+                f
+            },
+            quantity_base: {
+                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
+                f
+            },
         })
     }
 }
-
 
 fn main() {
     

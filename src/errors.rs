@@ -1,5 +1,7 @@
 //! The errors that [`libstock`](wmjtyd_libstock) will return.
 
+use std::convert::Infallible;
+
 use ::safer_ffi::prelude::*;
 use wmjtyd_libstock::data::fields::FieldError;
 
@@ -65,5 +67,11 @@ impl From<std::io::Error> for LibstockErrors {
     fn from(_e: std::io::Error) -> Self {
         // FIXME
         LibstockErrors::IoError
+    }
+}
+
+impl From<Infallible> for LibstockErrors {
+    fn from(_: Infallible) -> Self {
+        LibstockErrors::Succeed
     }
 }

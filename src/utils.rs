@@ -1,4 +1,4 @@
-use crate::errors::{LibstockResult, LibstockErrors};
+use crate::errors::{LibstockErrors, LibstockResult};
 
 #[inline]
 pub fn result_to_status_code(r: LibstockResult<()>) -> LibstockErrors {

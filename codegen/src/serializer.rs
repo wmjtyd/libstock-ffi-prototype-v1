@@ -1,9 +1,8 @@
-use proc_macro2::TokenStream;
 use combine::parser::char::{digit, letter, spaces, string};
-use combine::{choice, many1, EasyParser, Parser, sep_by1};
-use convert_case::{Casing, Case};
-use proc_macro2::{Ident, Span};
-use quote::{quote, format_ident};
+use combine::{choice, many1, sep_by1, EasyParser, Parser};
+use convert_case::{Case, Casing};
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{format_ident, quote};
 
 pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
     let item = item.to_string();
@@ -45,7 +44,7 @@ fn parse_parameters(input: &str) -> Vec<String> {
     let (result, remaining) = ident_parser
         .easy_parse(input)
         .expect("failed to parse the parameters");
-    
+
     assert_eq!(result.len(), 2);
     assert_eq!(remaining, "");
 
@@ -80,7 +79,7 @@ mod tests {
                 fn $case_name() {
                     super::parse_parameters($case);
                 }
-            }
+            };
         }
 
         build_failcase!(fc_1, "PriceDataField ->");

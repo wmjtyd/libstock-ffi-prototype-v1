@@ -1,9 +1,10 @@
 use std::io::Cursor;
 
 use safer_ffi::prelude::c_slice;
-use wmjtyd_libstock::data::{serializer::FieldSerializer, fields::FieldError};
+use wmjtyd_libstock::data::fields::FieldError;
+use wmjtyd_libstock::data::serializer::FieldSerializer;
 
-use crate::errors::{LibstockResult, LibstockErrors};
+use crate::errors::{LibstockErrors, LibstockResult};
 
 pub fn inner_serialize_field<'a, S, F: 'a>(
     input: &'a F,
@@ -22,4 +23,3 @@ where
 
     Ok(())
 }
-
