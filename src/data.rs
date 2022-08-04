@@ -1,11 +1,9 @@
 use ::safer_ffi::prelude::*;
-use codegen::{serializer_function, Interop};
+use codegen::{deserializer_function, serializer_function, Interop};
 use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
 
-use super::errors::LibstockErrors;
-
 /// The structure of a price data.
-#[derive(Clone, Debug, PartialEq, Eq, Interop)]
+#[derive(Clone, Debug, Interop)]
 #[rs_type(RPriceDataField)]
 #[derive_ReprC]
 #[repr(C)]
@@ -20,3 +18,4 @@ pub struct PriceDataField {
 }
 
 serializer_function!(PriceDataField -> RPriceDataField);
+deserializer_function!(RPriceDataField -> PriceDataField);

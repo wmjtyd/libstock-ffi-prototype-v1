@@ -28,10 +28,12 @@ impl TryFrom<ConvertBox<&DecimalField<5>>> for ConvertBox<char_p_boxed> {
     type Error = LibstockErrors;
 
     fn try_from(value: ConvertBox<&DecimalField<5>>) -> Result<Self, Self::Error> {
-        Ok(Self(value.0
-            .to_string()
-            .try_into()
-            .expect("failed to convert a string to C string.")
+        Ok(Self(
+            value
+                .0
+                .to_string()
+                .try_into()
+                .expect("failed to convert a string to C string."),
         ))
     }
 }
@@ -40,10 +42,12 @@ impl TryFrom<ConvertBox<&char_p_boxed>> for ConvertBox<DecimalField<5>> {
     type Error = LibstockErrors;
 
     fn try_from(value: ConvertBox<&char_p_boxed>) -> Result<Self, Self::Error> {
-        Ok(Self(value.0
-            .to_str()
-            .try_into()
-            .map_err(|_| LibstockErrors::DecimalStringInvalid)?
+        Ok(Self(
+            value
+                .0
+                .to_str()
+                .try_into()
+                .map_err(|_| LibstockErrors::DecimalStringInvalid)?,
         ))
     }
 }
@@ -68,7 +72,8 @@ impl TryFrom<&PriceDataField> for RPDF {
                 f
             },
             quantity_base: {
-                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
+                let ConvertBox(f) =
+                    TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
                 f
             },
         })
@@ -85,13 +90,12 @@ impl TryFrom<&RPDF> for PriceDataField {
                 f
             },
             quantity_base: {
-                let ConvertBox(f) = TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
+                let ConvertBox(f) =
+                    TryFrom::<ConvertBox<_>>::try_from(ConvertBox(&value.quantity_base))?;
                 f
             },
         })
     }
 }
 
-fn main() {
-    
-}
+fn main() {}

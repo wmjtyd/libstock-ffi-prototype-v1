@@ -85,6 +85,22 @@ pub fn interop_derive_macro(input: syn::ItemStruct) -> TokenStream {
                 #body
             }
         }
+
+        impl TryFrom<#ffi_type> for #rust_type {
+            type Error = crate::errors::LibstockErrors;
+
+            fn try_from(#source_ident: #ffi_type) -> Result<Self, Self::Error> {
+                #body
+            }
+        }
+
+        impl TryFrom<#rust_type> for #ffi_type {
+            type Error = crate::errors::LibstockErrors;
+
+            fn try_from(#source_ident: #rust_type) -> Result<Self, Self::Error> {
+                #body
+            }
+        }
     }
 }
 
@@ -177,7 +193,5 @@ fn extract_simple_ident_attribute(attributes: &[Attribute], ident: &str) -> Iden
 ///
 /// 如果找到名為 `into` 的 Attribute 則回傳 true；反之為 false。
 fn extract_boolean_attribute(attributes: &[Attribute], ident: &str) -> bool {
-    attributes
-        .iter()
-        .any(|attr| attr.path.is_ident(ident))
+    attributes.iter().any(|attr| attr.path.is_ident(ident))
 }
