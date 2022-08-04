@@ -79,6 +79,7 @@ where
 }
 
 #[ffi_export]
+/// Serialize `PriceDataField`.
 pub fn serialize_price_data_field<'a>(
     input: &PriceDataField,
     buf: &'a mut c_slice::Mut<'a, u8>,
