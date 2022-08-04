@@ -1,7 +1,5 @@
 //! For `bin/gen-header.rs`. Generate the C header.
 
-#![cfg(feature = "headers")]
-
 pub fn generate_header() -> anyhow::Result<()> {
     use anyhow::Context;
 

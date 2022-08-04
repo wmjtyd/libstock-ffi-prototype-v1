@@ -20,14 +20,3 @@ pub struct PriceDataField {
 }
 
 serializer_function!(PriceDataField -> RPriceDataField);
-
-pub struct RustT {
-    /// 價格 (5 bytes)
-    pub price: u64,
-}
-
-#[derive(Interop)]
-#[rs_type(RustT)]
-pub struct FFIT {
-    pub price: u64,
-}
