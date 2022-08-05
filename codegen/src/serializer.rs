@@ -197,5 +197,9 @@ mod tests {
         build_failcase!(fc_7, "WTF, PriceDataField->RPriceDataField");
         build_failcase!(fc_8, "ABC, PriceDataField->RPriceDataField");
         build_failcase!(fc_9, "Field, PriceDataField->RPriceDataField");
+        build_failcase!(fc_10, "Field<10>, PriceDataField ->");
+        build_failcase!(fc_11, "Field <10> , PriceDataField");
+        build_failcase!(fc_12, "Field< 10 >, PriceDataField-> RPriceDataField ->");
+        build_failcase!(fc_13, "Field<10>, PriceDataField->RPriceDataField->->->");
     }
 }
