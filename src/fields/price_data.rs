@@ -4,11 +4,11 @@
 //! For more information, see [`PriceDataField`].
 
 use ::safer_ffi::prelude::*;
-use codegen::{alloc_function, deserializer_function, serializer_function, Interop};
+use codegen::{alloc_function, deserializer_function, serializer_function, InteropStruct};
 pub use wmjtyd_libstock::data::fields::PriceDataField as RPriceDataField;
 
 /// The structure of a price data.
-#[derive(Clone, Debug, Interop)]
+#[derive(Clone, Debug, InteropStruct)]
 #[rs_type(RPriceDataField)]
 #[derive_ReprC]
 #[repr(C)]

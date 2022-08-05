@@ -44,30 +44,53 @@ pub fn alloc_function(item: TokenStream) -> TokenStream {
     alloc::inner_alloc_function(item.into()).into()
 }
 
-/// 建立 FFI type 與 Rust type 之間的 Interop。
-///
-/// 每個欄位必須實作 `TryFrom<ConvertBox<&(Rust 的 type)>>` 和
-/// `TryInto<ConvertBox<(FFI 的 type)>>`。
+/// 建立 FFI 與 Rust struct 之間的 Interop。
 ///
 /// 使用範例如下：
 ///
 /// ```ignore
-/// #[derive(Interop)]
+/// #[derive(InteropStruct)]
 /// #[rs_type(YourRustStruct)]
 /// pub struct YourFFIStruct {
-///   pub test: i32,
+///   pub our_type: i32,
 ///
 ///   #[into]  // 可以直接 .into() 的類型。
-///   pub our_type: OurFFiStruct,
+///   pub our_intoable_type: OurFFiIntoStruct,
+///
+///   #[try_into]  // 可以直接 .try_into() 的類型。
+///   pub our_tryintoable_type: OurFFiTryIntoStruct,
 ///
 ///   #[convert_box]  // Foreign Type 進行轉換。
 ///   pub foreign_type: char_p::Box,
+/// 
+///   #[default]  // 不需要特別指定，雙方用預設值即可。
+///   pub end: (),
 /// }
 /// ```
-#[proc_macro_derive(Interop, attributes(rs_type, into, try_into, convert_box, default))]
+#[proc_macro_derive(InteropStruct, attributes(rs_type, into, try_into, convert_box, default))]
 #[proc_macro_error]
-pub fn interop_derive_macro(input: TokenStream) -> TokenStream {
+pub fn interop_struct_derive_macro(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::ItemStruct);
 
-    interop::interop_derive_macro(input).into()
+    interop::interop_struct_derive_macro(input).into()
+}
+
+/// 建立 FFI 與 Rust enum 之間的 Interop。
+///
+/// 使用範例如下：
+///
+/// ```ignore
+/// #[derive(InteropEnum)]
+/// #[rs_type(YourRustEnum)]
+/// pub enum YourFFIEnum {
+///   VariantA = 1,
+///   VariantB,
+/// }
+/// ```
+#[proc_macro_derive(InteropEnum, attributes(rs_type, into, try_into, convert_box, default))]
+#[proc_macro_error]
+pub fn interop_enum_derive_macro(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as syn::ItemEnum);
+
+    interop::interop_enum_derive_macro(input).into()
 }

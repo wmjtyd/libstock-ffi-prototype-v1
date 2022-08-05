@@ -25,10 +25,10 @@ pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
 
     let inner_body = match typ {
         SerializeType::Field(len) => {
-            quote! { crate::serializer::inner_serialize_field::<#len, #rust_type, _, _>(input, buf, written_len) }
+            quote! { crate::serializer::inner_serialize_field::<#len, #rust_type, _, _, _>(input, buf, written_len) }
         }
         SerializeType::Struct => {
-            quote! { crate::serializer::inner_serialize_struct::<#rust_type, _, _>(input, buf, written_len) }
+            quote! { crate::serializer::inner_serialize_struct::<#rust_type, _, _, _>(input, buf, written_len) }
         }
     };
 
@@ -70,7 +70,7 @@ pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
                     output: &mut #ffi_type
                 ) -> crate::errors::LibstockErrors {
                     crate::utils::result_to_status_code(
-                        crate::serializer::inner_deserialize_field::<#len, #rust_type, _, _>(input, output)
+                        crate::serializer::inner_deserialize_field::<#len, #rust_type, _, _, _>(input, output)
                     )
                 }
             }
@@ -84,7 +84,7 @@ pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
                     output: &mut #ffi_type
                 ) -> crate::errors::LibstockErrors {
                     crate::utils::result_to_status_code(
-                        crate::serializer::inner_deserialize_struct::<#rust_type, _, _>(input, output)
+                        crate::serializer::inner_deserialize_struct::<#rust_type, _, _, _>(input, output)
                     )
                 }
             }
