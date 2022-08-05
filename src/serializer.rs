@@ -11,13 +11,14 @@ use wmjtyd_libstock::data::serializer::{
 
 use crate::errors::{LibstockErrors, LibstockResult};
 
-pub fn inner_serialize_field<'a, RST, FFI: 'a>(
+pub fn inner_serialize_field<'a, const LEN: usize, RST, FFI: 'a, E>(
     input: &'a FFI,
     buf: &mut c_slice::Mut<u8>,
     written_len: &mut usize,
 ) -> LibstockResult<()>
 where
-    RST: FieldSerializer<10, Err = FieldError> + TryFrom<&'a FFI, Error = LibstockErrors>,
+    RST: FieldSerializer<LEN, Err = FieldError> + TryFrom<&'a FFI, Error = E>,
+    LibstockErrors: From<E>,
 {
     let rust_type = RST::try_from(input)?;
     let mut cursor = Cursor::new(&mut buf[..]);
@@ -29,13 +30,14 @@ where
     Ok(())
 }
 
-pub fn inner_deserialize_field<'a, RST, FFI>(
+pub fn inner_deserialize_field<'a, const LEN: usize, RST, FFI, E>(
     input: &'a c_slice::Ref<'a, u8>,
     output: &'a mut FFI,
 ) -> LibstockResult<()>
 where
-    FFI: TryFrom<RST, Error = LibstockErrors> + Clone,
-    RST: FieldDeserializer<10, Err = FieldError>,
+    FFI: TryFrom<RST, Error = E> + Clone,
+    RST: FieldDeserializer<LEN, Err = FieldError>,
+    LibstockErrors: From<E>,
 {
     let mut input = input.as_slice();
 

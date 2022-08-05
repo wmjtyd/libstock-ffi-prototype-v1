@@ -2,12 +2,11 @@ use combine::parser::char::{digit, letter, spaces, string};
 use combine::{choice, many1, sep_by1, token, EasyParser, Parser};
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span, TokenStream};
-use proc_macro_error::abort;
 use quote::{format_ident, quote};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum SerializeType {
-    Field,
+    Field(usize),
     Struct,
 }
 
@@ -25,8 +24,8 @@ pub fn inner_serializer_function(item: TokenStream) -> TokenStream {
     let doc_str = format!("Serialize `{ffi_type}` to the specified buffer.");
 
     let inner_body = match typ {
-        SerializeType::Field => {
-            quote! { crate::serializer::inner_serialize_field::<#rust_type, _>(input, buf, written_len) }
+        SerializeType::Field(len) => {
+            quote! { crate::serializer::inner_serialize_field::<#len, #rust_type, _, _>(input, buf, written_len) }
         }
         SerializeType::Struct => {
             quote! { crate::serializer::inner_serialize_struct::<#rust_type, _, _>(input, buf, written_len) }
@@ -62,7 +61,7 @@ pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
     let doc_str = format!("Deserialize `{ffi_type}` from the specified buffer.");
 
     match typ {
-        SerializeType::Field => {
+        SerializeType::Field(len) => {
             quote! {
                 #[ffi_export]
                 #[doc = #doc_str]
@@ -71,7 +70,7 @@ pub fn inner_deserializer_function(item: TokenStream) -> TokenStream {
                     output: &mut #ffi_type
                 ) -> crate::errors::LibstockErrors {
                     crate::utils::result_to_status_code(
-                        crate::serializer::inner_deserialize_field::<#rust_type, _>(input, output)
+                        crate::serializer::inner_deserialize_field::<#len, #rust_type, _, _>(input, output)
                     )
                 }
             }
@@ -103,21 +102,26 @@ fn parse_parameters(input: &str) -> Parameters {
     //                      ~~~~ Ignore
     // TYP, [PriceDataField -> RPriceDataField] -> ident_parser
     //        ~~~~left~~~~    ~~~~right~~~~~~
-    let (typ, remaining) = choice((string("Field"), string("Struct")))
-        .skip(token(','))
-        .parse(input)
+    let field_parser = string("Field")
+        .skip(spaces().with(token('<')))
+        .with(
+            spaces().with(many1(digit()))
+                .map(|s: String| s.parse::<usize>().expect("field is not a valid number")),
+        )
+        .skip(spaces().with(token('>')))
+        .map(SerializeType::Field);
+    
+    let struct_parser = string("Struct").map(|_| SerializeType::Struct);
+
+    let (typ, remaining) = choice((field_parser, struct_parser))
+        .skip(spaces().with(token(',')))
+        .easy_parse(input)
         .unwrap();
 
     let mut ident_parser = sep_by1::<Vec<String>, _, _, _>(
         spaces().with(many1(choice((letter(), digit())))),
         spaces().skip(string("->")),
     );
-
-    let typ = match typ {
-        "Field" => SerializeType::Field,
-        "Struct" => SerializeType::Struct,
-        _ => abort!("Unexpected type: {}", typ),
-    };
 
     let (result, remaining) = ident_parser
         .easy_parse(remaining)
@@ -140,10 +144,15 @@ mod tests {
     #[test]
     fn test_parse_parameter() {
         const ALL_OF_THEM_ARE_THE_SAME_FIELD: &[&str] = &[
-            "Field, PriceDataField -> RPriceDataField",
-            "Field, PriceDataField ->RPriceDataField",
-            "Field, PriceDataField-> RPriceDataField",
-            "Field, PriceDataField->RPriceDataField",
+            "Field<10>, PriceDataField -> RPriceDataField",
+            "Field<10>, PriceDataField ->RPriceDataField",
+            "Field<10>, PriceDataField-> RPriceDataField",
+            "Field<10>, PriceDataField->RPriceDataField",
+            "Field <10> , PriceDataField -> RPriceDataField",
+            "Field <10> , PriceDataField ->RPriceDataField",
+            "Field < 10>, PriceDataField-> RPriceDataField",
+            "Field < 10 >, PriceDataField->RPriceDataField",
+            "Field < 10 > , PriceDataField->RPriceDataField",
         ];
 
         const ALL_OF_THEM_ARE_THE_SAME_STRUCT: &[&str] = &[
@@ -155,7 +164,7 @@ mod tests {
 
         for testcase in ALL_OF_THEM_ARE_THE_SAME_FIELD {
             let result = parse_parameters(testcase);
-            assert_eq!(result.typ, super::SerializeType::Field);
+            assert_eq!(result.typ, super::SerializeType::Field(10));
             assert_eq!(result.left, "PriceDataField");
             assert_eq!(result.right, "RPriceDataField");
         }
@@ -187,5 +196,6 @@ mod tests {
         build_failcase!(fc_6, "ABC, PriceDataField->RPriceDataField");
         build_failcase!(fc_7, "WTF, PriceDataField->RPriceDataField");
         build_failcase!(fc_8, "ABC, PriceDataField->RPriceDataField");
+        build_failcase!(fc_9, "Field, PriceDataField->RPriceDataField");
     }
 }
