@@ -1276,7 +1276,7 @@ dependencies = [
 [[package]]
 name = "napi-dispatcher"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "napi",
  "napi-dispatcher-nodejs-derive",
@@ -1286,7 +1286,7 @@ dependencies = [
 [[package]]
 name = "napi-dispatcher-nodejs-derive"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "napi-derive",
  "napi-dispatcher-nodejs-derive-proc_macros",
@@ -1295,7 +1295,7 @@ dependencies = [
 [[package]]
 name = "napi-dispatcher-nodejs-derive-proc_macros"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1305,7 +1305,7 @@ dependencies = [
 [[package]]
 name = "napi-dispatcher-wasm"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "js-sys",
  "napi-dispatcher-wasm-proc_macros",
@@ -1318,7 +1318,7 @@ dependencies = [
 [[package]]
 name = "napi-dispatcher-wasm-proc_macros"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1963,7 +1963,7 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 [[package]]
 name = "safer-ffi"
 version = "0.1.0"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "inventory",
  "libc",
@@ -1980,7 +1980,7 @@ dependencies = [
 [[package]]
 name = "safer_ffi-proc_macros"
 version = "0.1.0-rc1"
-source = "git+https://github.com/getditto/safer_ffi.git?rev=64b921bdcabe441b957742332773248af6677a89#64b921bdcabe441b957742332773248af6677a89"
+source = "git+https://github.com/getditto/safer_ffi.git?rev=acbf214e9e0dff35f97b1c83d2face8dc629a6c4#acbf214e9e0dff35f97b1c83d2face8dc629a6c4"
 dependencies = [
  "macro_rules_attribute",
  "prettyplease",

@@ -12,9 +12,9 @@ default-members = ["."]
 
 [lib]
 crate-type = [
-    "staticlib",  # Ensure it gets compiled as a (static) C library
-  "cdylib",     # If you want a shared/dynamic C library (advanced)
-    "lib",        # For downstream Rust dependents: `examples/`, `tests/` etc.
+  "staticlib", # Ensure it gets compiled as a (static) C library
+  "cdylib",    # If you want a shared/dynamic C library (advanced)
+  "lib",       # For downstream Rust dependents: `examples/`, `tests/` etc.
 ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -22,7 +22,9 @@ crate-type = [
 anyhow = { version = "1.0.59", optional = true }
 codegen = { version = "0.1.0", path = "codegen" }
 log = "0.4.17"
-safer-ffi = { version = "0.1.0", git = "https://github.com/getditto/safer_ffi.git", features = ["log"], rev = "64b921bdcabe441b957742332773248af6677a89" }
+safer-ffi = { version = "0.1.0", git = "https://github.com/getditto/safer_ffi.git", features = [
+  "log",
+], rev = "acbf214e9e0dff35f97b1c83d2face8dc629a6c4" }
 strum = { version = "0.24.1", features = ["derive"] }
 wmjtyd-libstock = { git = "https://github.com/wmjtyd/libstock", branch = "develop", version = "0.4.0-dev" }
 
